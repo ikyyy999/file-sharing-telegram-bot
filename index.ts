@@ -1,35 +1,43 @@
-import { Bot, webhookCallback, Context } from "grammy";
+// Impor modul dan fungsi yang diperlukan
+import { Bot, webhookCallback } from "grammy";
 import express from "express";
 import { getFile, storeFile } from "./services";
-import { botID, botToken, channelUsername, adminIDs } from "./config";
+import { botID, botToken, adminIDs } from "./config"; // Mengasumsikan adminIDs didefinisikan dalam konfigurasi Anda
+
 import sendMediaFunction from "./utils/sendMediaFunction";
 
+// Membuat instance Bot baru
 const bot = new Bot(botToken);
 
+// Menangani perintah start
 bot.command("start", async (ctx) => {
   try {
-    // ... (Bagian start command tidak berubah)
+    // ... (Bagian tersisa dari perintah start tetap tidak berubah)
   } catch (error) {
     console.error(error);
     await ctx.reply("Something wrong! Please try again :(");
   }
 });
 
+// Menangani pesan teks
 bot.on("message:text", async (ctx) => {
   await ctx.reply(
     "I don't understand your input :(. Please directly upload your file that you want to share :D"
   );
 });
 
+// Menangani pesan file
 bot.on("message:file", async (ctx) => {
   try {
-    // Periksa apakah pengirim pesan adalah admin
-    const isAdmin = adminIDs.includes(ctx.from.id);
+    // Periksa apakah pengirim adalah admin
+    const isAdmin = adminIDs && adminIDs.includes(ctx.from?.id?.toString() || "");
+
     if (!isAdmin) {
       await ctx.reply("Only admins can send files.");
       return;
     }
 
+    // Sisanya dari logika penanganan file tetap tidak berubah
     const file = await ctx.getFile();
     const fileCode = await storeFile(file.file_id);
     return ctx.reply(
@@ -41,6 +49,7 @@ bot.on("message:file", async (ctx) => {
   }
 });
 
+// Jalankan bot atau atur webhook di produksi
 if (process.env.NODE_ENV === "production") {
   const app = express();
   app.use(express.json());
