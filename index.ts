@@ -1,16 +1,19 @@
 import { Bot, webhookCallback } from "grammy";
 import express from "express";
-import { getFile, storeFile, subscribeUser, isUserSubscribed } from "./services";
-import { botID, botToken } from "./config";
+import { getFile, storeFile } from "./services";
+import { botID, botToken, channelUsername } from "./config"; // Add channelUsername to your config file
 import sendMediaFunction from "./utils/sendMediaFunction";
 
 const bot = new Bot(botToken);
 
 bot.command("start", async (ctx) => {
   try {
-    if (!isUserSubscribed(ctx.from.id)) {
-      // User is not subscribed
-      await ctx.reply("Please subscribe to use this service. Use /subscribe to subscribe.");
+    const userId = ctx.from.id;
+    
+    // Check if the user is a member of the channel
+    const isMember = await bot.api.getChatMember(channelUsername, userId);
+    if (isMember.status !== "member" && isMember.status !== "administrator") {
+      await ctx.reply("To use this bot, you must join our channel first!");
       return;
     }
 
@@ -25,22 +28,13 @@ bot.command("start", async (ctx) => {
       return;
     }
 
-    return ctx.reply("Welcome to the file-sharing Telegram bot! Just upload your file that you want to share.");
+    return ctx.reply(
+      "Welcome to the file-sharing Telegram bot! Just upload your file that you want to share."
+    );
   } catch (error) {
     console.error(error);
     await ctx.reply("Something wrong! Please try again :(");
   }
 });
 
-bot.command("subscribe", async (ctx) => {
-  try {
-    subscribeUser(ctx.from.id);
-    await ctx.reply("Thank you for subscribing! You can now use the file-sharing service.");
-  } catch (error) {
-    console.error(error);
-    await ctx.reply("Something wrong! Please try again :(");
-  }
-});
-
-// ... (rest of the code)
-
+// ... (Other parts of your code remain unchanged)
