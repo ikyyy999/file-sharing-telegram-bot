@@ -1,18 +1,25 @@
-import { Bot, webhookCallback } from "grammy";
+import { Bot, webhookCallback, Context } from "grammy";
 import express from "express";
 import { getFile, storeFile } from "./services";
-import { botID, botToken, channelUsername } from "./config"; // Add channelUsername to your config file
+import { botID, botToken, channelUsername } from "./config";
 import sendMediaFunction from "./utils/sendMediaFunction";
 
 const bot = new Bot(botToken);
 
 bot.command("start", async (ctx: Context) => {
   try {
-    const userId = ctx.from?.id; // Gunakan optional chaining untuk menangani 'undefined'
+    const userId = ctx.from?.id; // Use optional chaining to handle 'undefined'
     
     if (!userId) {
-      // Tangani kasus di mana ctx.from adalah undefined
+      // Handle the case where ctx.from is undefined
       console.error("User ID not available");
+      return;
+    }
+
+    // Check if the user is a member of the channel
+    const isMember = await bot.api.getChatMember(channelUsername, userId);
+    if (isMember.status !== "member" && isMember.status !== "administrator") {
+      await ctx.reply("To use this bot, you must join our channel first!");
       return;
     }
 
