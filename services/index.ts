@@ -12,3 +12,7 @@ export async function storeFile(fileId: string) {
 export async function getFile(code: string) {
   return await db.get(code);
 }
+
+export async function getFileGo(code: string) {
+  return await db.get(code);
+}
