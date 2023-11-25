@@ -13,6 +13,6 @@ export async function getFile(code: string) {
   return await db.get(code);
 }
 
-export async function getFileGo(code: string) {
+export async function getFileByCode(code: string) {
   return await db.get(code);
 }
