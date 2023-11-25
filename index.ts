@@ -1,7 +1,7 @@
 import { Bot, webhookCallback } from "grammy";
 import express from "express";
-import { getFile, storeFile, getFileByCode } from "./services";
-import { botID, botToken, adminIDs, channelLink } from "./config"; // Sesuaikan dengan konfigurasi Anda
+import { getFile, storeFile, getFileByCode } from "./services"; // Tambahkan fungsi getFileByCode
+import { botID, botToken, adminIDs } from "./config";
 import sendMediaFunction from "./utils/sendMediaFunction";
 
 const bot = new Bot(botToken);
@@ -9,20 +9,11 @@ const bot = new Bot(botToken);
 bot.command("start", async (ctx) => {
   try {
     if (ctx.match && ctx.match.length === 8) {
-      const fileCode = ctx.match;
+      const fileCode = ctx.match; // Ambil kode dari tautan yang diberikan oleh pengguna
       const file = await getFileByCode(fileCode);
-
+      
       if (!file) {
         await ctx.reply("File not found! Please make sure the code is correct.");
-        return;
-      }
-
-      // Cek apakah pengguna sudah berlangganan ke saluran
-      const isSubscribed = await ctx.getChatMember(ctx.from!.id, channelLink);
-      
-      if (isSubscribed.status !== 'member' && isSubscribed.status !== 'administrator') {
-        // Jika tidak berlangganan, minta pengguna untuk berlangganan terlebih dahulu
-        await ctx.reply(`Anda harus berlangganan di ${channelLink} untuk mengakses file.`);
         return;
       }
 
