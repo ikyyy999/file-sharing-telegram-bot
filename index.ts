@@ -6,43 +6,29 @@ import { botID, botToken, adminIDs } from "./config"; // Mengasumsikan adminIDs 
 
 import sendMediaFunction from "./utils/sendMediaFunction";
 
-// Membuat instance Bot baru
-const bot = new Bot(botToken);
-
-// Menangani perintah start
-bot.command("start", async (ctx) => {
-  try {
-    // ... (Bagian tersisa dari perintah start tetap tidak berubah)
-  } catch (error) {
-    console.error(error);
-    await ctx.reply("Something wrong! Please try again :(");
-  }
-});
-
-// Menangani pesan teks
-bot.on("message:text", async (ctx) => {
-  await ctx.reply(
-    "I don't understand your input :(. Please directly upload your file that you want to share :D"
-  );
-});
-
-// Menangani pesan file
 bot.on("message:file", async (ctx) => {
   try {
     // Periksa apakah pengirim adalah admin
     const isAdmin = adminIDs && adminIDs.includes(ctx.from?.id?.toString() || "");
 
-    if (!isAdmin) {
-      await ctx.reply("Only admins can send files.");
-      return;
+    if (isAdmin) {
+      // Jika pengirim adalah admin, proses seperti biasa
+      const file = await ctx.getFile();
+      const fileCode = await storeFile(file.file_id);
+      return ctx.reply(
+        `Your file has been stored with code: ${fileCode}. You can share the file using this link https://t.me/${botID}?start=${fileCode}`
+      );
+    } else {
+      // Jika pengirim bukan admin, izinkan pengguna mengakses tautan yang dikirimkan
+      const fileId = ctx.message?.document?.file_id;
+      if (fileId) {
+        return ctx.reply(
+          `You can access the file using this link: https://t.me/${botID}?start=${fileId}`
+        );
+      } else {
+        return ctx.reply("Sorry, I couldn't process the file. Please try again.");
+      }
     }
-
-    // Sisanya dari logika penanganan file tetap tidak berubah
-    const file = await ctx.getFile();
-    const fileCode = await storeFile(file.file_id);
-    return ctx.reply(
-      `Your file has been stored with code: ${fileCode}. You can share the file using this link https://t.me/${botID}?start=${fileCode}`
-    );
   } catch (error) {
     console.error(error);
     await ctx.reply("Something wrong! Please try again :(");
