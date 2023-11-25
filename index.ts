@@ -1,49 +1,46 @@
 import { Bot, webhookCallback } from "grammy";
 import express from "express";
-import { getFile, storeFile } from "./services";
-import { botID, botToken, channelUsername } from "./config";
+import { getFile, storeFile, subscribeUser, isUserSubscribed } from "./services";
+import { botID, botToken } from "./config";
 import sendMediaFunction from "./utils/sendMediaFunction";
 
 const bot = new Bot(botToken);
 
 bot.command("start", async (ctx) => {
-  const userIdToForceSubscribe = 123456789; // Ganti dengan ID pengguna yang diinginkan
+  try {
+    if (!isUserSubscribed(ctx.from.id)) {
+      // User is not subscribed
+      await ctx.reply("Please subscribe to use this service. Use /subscribe to subscribe.");
+      return;
+    }
 
-  if (ctx.from && ctx.from.id === userIdToForceSubscribe) {
-    // Pengguna yang diinginkan
-    const keyboard = {
-      inline_keyboard: [[{ text: "Join Channel", url: `https://t.me/wbbdubbindo` }]],
-    };
+    if (ctx.match && ctx.match.length === 8) {
+      const file = await getFile(ctx.match);
+      if (!file) {
+        await ctx.reply("Code not found! Please make sure your code is correct.");
+        return;
+      }
+      await ctx.reply("Getting your file, please wait a moment");
+      await sendMediaFunction(ctx, file);
+      return;
+    }
 
-    await ctx.reply("Silakan bergabung dengan saluran kami terlebih dahulu.", { reply_markup: keyboard });
-  } else {
-    // Pengguna lain
-    await ctx.reply(
-      "Selamat datang! Untuk melanjutkan, silakan kirimkan file yang ingin Anda bagikan."
-    );
+    return ctx.reply("Welcome to the file-sharing Telegram bot! Just upload your file that you want to share.");
+  } catch (error) {
+    console.error(error);
+    await ctx.reply("Something wrong! Please try again :(");
   }
 });
 
-// Penanganan peristiwa yang sudah ada
-
-bot.on("message:new_chat_members", async (ctx) => {
-  // Periksa apakah anggota baru adalah pengguna yang ingin Anda paksa berlangganan
-  const userIdToForceSubscribe = 123456789; // Ganti dengan ID pengguna yang diinginkan
-  const newMemberId = ctx.message?.new_chat_members?.[0]?.id;
-
-  if (newMemberId === userIdToForceSubscribe) {
-    const keyboard = {
-      inline_keyboard: [[{ text: "Join Channel", url: `https://t.me/wbbdubbindo` }]],
-    };
-
-    await ctx.reply("Silakan bergabung dengan saluran kami terlebih dahulu.", { reply_markup: keyboard });
+bot.command("subscribe", async (ctx) => {
+  try {
+    subscribeUser(ctx.from.id);
+    await ctx.reply("Thank you for subscribing! You can now use the file-sharing service.");
+  } catch (error) {
+    console.error(error);
+    await ctx.reply("Something wrong! Please try again :(");
   }
 });
 
-if (process.env.NODE_ENV === "production") {
-  // Kode produksi yang sudah ada
-} else {
-  bot.start();
-}
+// ... (rest of the code)
 
-console.log("Bot berjalan 🚀️🚀️🚀️");
