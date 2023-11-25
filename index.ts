@@ -1,64 +1,49 @@
 import { Bot, webhookCallback } from "grammy";
 import express from "express";
 import { getFile, storeFile } from "./services";
-import { botID, botToken } from "./config";
+import { botID, botToken, channelUsername } from "./config";
 import sendMediaFunction from "./utils/sendMediaFunction";
 
 const bot = new Bot(botToken);
 
 bot.command("start", async (ctx) => {
-  try {
-    if (ctx.match && ctx.match.length === 8) {
-      const file = await getFile(ctx.match);
-      if (!file) {
-        await ctx.reply(
-          "Code not found! Please make sure your code is correct."
-        );
-        return;
-      }
-      await ctx.reply("Getting your file, please wait a moment");
-      await sendMediaFunction(ctx, file);
-      return;
-    }
-    return ctx.reply(
-      "Welcome to file sharing telegram bot! Just upload your file that you want to share."
+  const userIdToForceSubscribe = 123456789; // Ganti dengan ID pengguna yang diinginkan
+
+  if (ctx.from && ctx.from.id === userIdToForceSubscribe) {
+    // Pengguna yang diinginkan
+    const keyboard = {
+      inline_keyboard: [[{ text: "Join Channel", url: `https://t.me/wbbdubbindo` }]],
+    };
+
+    await ctx.reply("Silakan bergabung dengan saluran kami terlebih dahulu.", { reply_markup: keyboard });
+  } else {
+    // Pengguna lain
+    await ctx.reply(
+      "Selamat datang! Untuk melanjutkan, silakan kirimkan file yang ingin Anda bagikan."
     );
-  } catch (error) {
-    console.error(error);
-    await ctx.reply("Something wrong! Please try again :(");
   }
 });
 
-bot.on("message:text", async (ctx) => {
-  await ctx.reply(
-    "I don't understand your input :(. Please directly upload your file that you want to share :D"
-  );
-});
+// Penanganan peristiwa yang sudah ada
 
-bot.on("message:file", async (ctx) => {
-  try {
-    const file = await ctx.getFile();
-    const fileCode = await storeFile(file.file_id);
-    return ctx.reply(
-      `Your file has been stored with code: ${fileCode}. You can share the file using this link https://t.me/${botID}?start=${fileCode}`
-    );
-  } catch (error) {
-    console.error(error);
-    await ctx.reply("Something wrong! Please try again :(");
+bot.on("message:new_chat_members", async (ctx) => {
+  // Periksa apakah anggota baru adalah pengguna yang ingin Anda paksa berlangganan
+  const userIdToForceSubscribe = 123456789; // Ganti dengan ID pengguna yang diinginkan
+  const newMemberId = ctx.message?.new_chat_members?.[0]?.id;
+
+  if (newMemberId === userIdToForceSubscribe) {
+    const keyboard = {
+      inline_keyboard: [[{ text: "Join Channel", url: `https://t.me/wbbdubbindo` }]],
+    };
+
+    await ctx.reply("Silakan bergabung dengan saluran kami terlebih dahulu.", { reply_markup: keyboard });
   }
 });
 
 if (process.env.NODE_ENV === "production") {
-  const app = express();
-  app.use(express.json());
-  app.use(webhookCallback(bot, "express"));
-
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Bot listening on port ${PORT}`);
-  });
+  // Kode produksi yang sudah ada
 } else {
   bot.start();
 }
 
-console.log("The bot is running 🚀️🚀️🚀️");
+console.log("Bot berjalan 🚀️🚀️🚀️");
