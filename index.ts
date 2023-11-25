@@ -6,14 +6,13 @@ import sendMediaFunction from "./utils/sendMediaFunction";
 
 const bot = new Bot(botToken);
 
-bot.command("start", async (ctx) => {
+bot.command("start", async (ctx: Context) => {
   try {
-    const userId = ctx.from.id;
+    const userId = ctx.from?.id; // Gunakan optional chaining untuk menangani 'undefined'
     
-    // Check if the user is a member of the channel
-    const isMember = await bot.api.getChatMember(channelUsername, userId);
-    if (isMember.status !== "member" && isMember.status !== "administrator") {
-      await ctx.reply("To use this bot, you must join our channel first!");
+    if (!userId) {
+      // Tangani kasus di mana ctx.from adalah undefined
+      console.error("User ID not available");
       return;
     }
 
