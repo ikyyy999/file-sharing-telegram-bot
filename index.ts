@@ -1,4 +1,4 @@
-import { Bot, webhookCallback } from "grammy";
+import { Bot, webhookCallbackimport, ChatMemberStatus } from "grammy";
 import express from "express";
 import { getFile, storeFile, getFileByCode } from "./services";
 import { botID, botToken, adminIDs, channelUsername } from "./config";
