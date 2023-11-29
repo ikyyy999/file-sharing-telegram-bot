@@ -1,62 +1,87 @@
 import { Bot, webhookCallback } from "grammy";
 import express from "express";
-import { getFile, storeFile, getFileByCode } from "./services"; // Tambahkan fungsi getFileByCode
-import { botID, botToken, adminIDs } from "./config";
+import { getFile, storeFile, getFileByCode } from "./services";
+import { botID, botToken, adminIDs, telegramApiId } from "./config";
 import sendMediaFunction from "./utils/sendMediaFunction";
+import axios from "axios";
 
 const bot = new Bot(botToken);
 
 bot.command("start", async (ctx) => {
   try {
+    const userId = ctx.from?.id;
+
+    // Periksa status langganan menggunakan Telegram API ID
+    const isSubscribed = await checkSubscription(userId);
+
+    if (!isSubscribed) {
+      await ctx.reply("Silakan bergabung dengan saluran kami untuk menggunakan bot.\nJoin our channel to use the bot: t.me/your_channel_username");
+      return;
+    }
+
     if (ctx.match && ctx.match.length === 8) {
-      const fileCode = ctx.match; // Ambil kode dari tautan yang diberikan oleh pengguna
+      const fileCode = ctx.match;
       const file = await getFileByCode(fileCode);
-      
+
       if (!file) {
-        await ctx.reply("File not found! Please make sure the code is correct.");
+        await ctx.reply("File tidak ditemukan! Pastikan kode yang dimasukkan benar.");
         return;
       }
 
-      // Kirim file ke pengguna
       await sendMediaFunction(ctx, file);
       return;
     }
 
-    return ctx.reply("Welcome to the file-sharing Telegram bot! Just upload your file that you want to share.");
+    return ctx.reply("Selamat datang di bot pengiriman file Telegram! Cukup unggah file yang ingin Anda bagikan.");
   } catch (error) {
     console.error(error);
-    await ctx.reply("Something wrong! Please try again :(");
+    await ctx.reply("Ada yang salah! Silakan coba lagi :(");
   }
 });
 
 bot.on("message:text", async (ctx) => {
-  await ctx.reply("I don't understand your input :(. Please directly upload your file that you want to share :D");
+  await ctx.reply("Saya tidak mengerti masukan Anda :(. Silakan langsung unggah file yang ingin Anda bagikan :D");
 });
 
 bot.on("message:file", async (ctx) => {
   try {
-    // Periksa apakah pengirim adalah admin
     const isAdmin = adminIDs && adminIDs.includes(ctx.from?.id?.toString() || "");
 
     if (!isAdmin) {
-      await ctx.reply("Only admins can send files.");
+      await ctx.reply("Hanya admin yang dapat mengirimkan file.");
       return;
     }
 
     const file = await ctx.getFile();
     const fileCode = await storeFile(file.file_id);
 
-    // Berikan link yang dapat diakses pengguna
     const fileLink = `https://t.me/${botID}?start=${fileCode}`;
     
-    return ctx.reply(`Your file has been stored with code: ${fileCode}. You can share the file using this link ${fileLink}`);
+    return ctx.reply(`File Anda telah disimpan dengan kode: ${fileCode}. Anda dapat berbagi file menggunakan tautan ini ${fileLink}`);
   } catch (error) {
     console.error(error);
-    await ctx.reply("Something wrong! Please try again :(");
+    await ctx.reply("Ada yang salah! Silakan coba lagi :(");
   }
 });
 
-// Handle webhook or start the bot in development
+// Fungsi untuk memeriksa langganan pengguna menggunakan Telegram API ID
+async function checkSubscription(userId) {
+  try {
+    const response = await axios.post(
+      `https://api.telegram.org/bot${telegramApiId}/getChatMember`,
+      {
+        chat_id: "@wbbdubbindo",  // ganti dengan nama pengguna saluran Anda
+        user_id: userId,
+      }
+    );
+
+    return response.data.ok && response.data.result.status === "member";
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
+
 if (process.env.NODE_ENV === "production") {
   const app = express();
   app.use(express.json());
@@ -64,10 +89,10 @@ if (process.env.NODE_ENV === "production") {
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
-    console.log(`Bot listening on port ${PORT}`);
+    console.log(`Bot mendengarkan di port ${PORT}`);
   });
 } else {
   bot.start();
 }
 
-console.log("The bot is running 🚀️🚀️🚀️");
+console.log("Bot sedang berjalan 🚀️🚀️🚀️");
