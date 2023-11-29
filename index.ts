@@ -3,7 +3,7 @@ import express from "express";
 import { getFile, storeFile, getFileByCode } from "./services";
 import { botID, botToken, adminIDs, telegramApiId } from "./config";
 import sendMediaFunction from "./utils/sendMediaFunction";
-import axios from "axios"; // Pastikan untuk menginstal axios menggunakan npm install axios
+import axios from "axios"; // Pastikan untuk menginstal axios menggunakan npm install axios.
 
 const bot = new Bot(botToken);
 
