@@ -15,7 +15,7 @@ bot.command("start", async (ctx) => {
     const isSubscribed = await checkSubscription(userId);
 
     if (!isSubscribed) {
-      await ctx.reply("Silakan bergabung dengan saluran kami untuk menggunakan bot.\nJoin our channel to use the bot: t.me/your_channel_username");
+      await ctx.reply("Silakan bergabung dengan saluran kami untuk menggunakan bot.\nJoin our channel to use the bot: https://t.me/wbbdubbindo");
       return;
     }
 
