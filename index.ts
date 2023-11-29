@@ -1,19 +1,21 @@
 import { Bot, webhookCallback } from "grammy";
 import express from "express";
 import { getFile, storeFile, getFileByCode } from "./services";
-import { botID, botToken, adminIDs, channelUsername } from "./config"; // Tambahkan channelUsername ke konfigurasi
+import { botID, botToken, adminIDs, telegramApiId } from "./config";
 import sendMediaFunction from "./utils/sendMediaFunction";
+import axios from "axios"; // Pastikan untuk menginstal axios menggunakan npm install axios
 
 const bot = new Bot(botToken);
 
 bot.command("start", async (ctx) => {
   try {
-    // Periksa apakah pengguna adalah anggota saluran
-    const isMember = await ctx.getChatMember(ctx.from.id, channelUsername);
+    const userId = ctx.from?.id;
 
-    if (!isMember) {
-      // Jika pengguna bukan anggota, minta mereka untuk bergabung dengan saluran
-      await ctx.reply(`Untuk mengakses bot, silakan bergabung dengan saluran kami: t.me/${channelUsername}`);
+    // Periksa status langganan menggunakan Telegram API ID
+    const isSubscribed = await checkSubscription(userId);
+
+    if (!isSubscribed) {
+      await ctx.reply("Silakan berlangganan ke saluran untuk mengakses bot.");
       return;
     }
 
@@ -26,7 +28,6 @@ bot.command("start", async (ctx) => {
         return;
       }
 
-      // Kirim file ke pengguna
       await sendMediaFunction(ctx, file);
       return;
     }
@@ -39,12 +40,11 @@ bot.command("start", async (ctx) => {
 });
 
 bot.on("message:text", async (ctx) => {
-  await ctx.reply("Saya tidak mengerti input Anda :(. Silakan langsung unggah file yang ingin Anda bagikan :D");
+  await ctx.reply("Saya tidak mengerti masukan Anda :(. Silakan langsung unggah file yang ingin Anda bagikan :D");
 });
 
 bot.on("message:file", async (ctx) => {
   try {
-    // Periksa apakah pengirim adalah admin
     const isAdmin = adminIDs && adminIDs.includes(ctx.from?.id?.toString() || "");
 
     if (!isAdmin) {
@@ -55,17 +55,33 @@ bot.on("message:file", async (ctx) => {
     const file = await ctx.getFile();
     const fileCode = await storeFile(file.file_id);
 
-    // Berikan link yang dapat diakses pengguna
     const fileLink = `https://t.me/${botID}?start=${fileCode}`;
     
-    return ctx.reply(`File Anda telah disimpan dengan kode: ${fileCode}. Anda dapat membagikan file menggunakan tautan ini ${fileLink}`);
+    return ctx.reply(`File Anda telah disimpan dengan kode: ${fileCode}. Anda dapat berbagi file menggunakan tautan ini ${fileLink}`);
   } catch (error) {
     console.error(error);
     await ctx.reply("Ada yang salah! Silakan coba lagi :(");
   }
 });
 
-// Tangani webhook atau jalankan bot dalam pengembangan
+// Fungsi untuk memeriksa langganan pengguna menggunakan Telegram API ID
+async function checkSubscription(userId) {
+  try {
+    const response = await axios.post(
+      `https://api.telegram.org/bot${telegramApiId}/getChatMember`,
+      {
+        chat_id: "@nama_pengguna_saluran_anda",  // ganti dengan nama pengguna saluran Anda
+        user_id: userId,
+      }
+    );
+
+    return response.data.ok && response.data.result.status === "member";
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
+
 if (process.env.NODE_ENV === "production") {
   const app = express();
   app.use(express.json());
@@ -79,4 +95,4 @@ if (process.env.NODE_ENV === "production") {
   bot.start();
 }
 
-console.log("Bot berjalan 🚀️🚀️🚀️");
+console.log("Bot sedang berjalan 🚀️🚀️🚀️");
