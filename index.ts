@@ -22,7 +22,7 @@ class MyTelegramBot extends Bot {
       process.exit();
     }
 
-    // Rest of the start method...
+    // Rest of the start method..
 
     console.log("Bot is running 🚀️🚀️🚀️");
   }
