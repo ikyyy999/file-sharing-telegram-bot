@@ -1,4 +1,4 @@
-import { Bot, webhookCallback } from "grammy";
+mport { Bot, webhookCallback } from "grammy";
 import express from "express";
 import { getFile, storeFile, getFileByCode } from "./services"; // Tambahkan fungsi getFileByCode
 import { botID, botToken, adminIDs } from "./config";
@@ -9,7 +9,7 @@ const bot = new Bot(botToken);
 bot.command("start", async (ctx) => {
   try {
     if (ctx.match && ctx.match.length === 8) {
-      const fileCode = ctx.match; // Ambil kode dari tautan yang diberikan oleh pengguna\
+      const fileCode = ctx.match; // Ambil kode dari tautan yang diberikan oleh pengguna
       const file = await getFileByCode(fileCode);
       
       if (!file) {
