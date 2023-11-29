@@ -1,8 +1,29 @@
 import { Bot, webhookCallback } from "grammy";
 import express from "express";
-import { getFile, storeFile, getFileByCode } from "./services"; // Tambahkan fungsi getFileByCode
-import { botID, botToken, adminIDs } from "./config";
+import { getFile, storeFile, getFileByCode } from "./services";
+import { botID, botToken, channelUsername } from "./config"; // Mengasumsikan Anda memiliki bidang konfigurasi untuk nama pengguna saluran
 import sendMediaFunction from "./utils/sendMediaFunction";
+
+const bot = new Bot(botToken);
+
+// Fungsi untuk memeriksa apakah pengguna adalah anggota saluran yang diizinkan
+const isMemberOfChannel = async (userId: string): Promise<boolean> => {
+  try {
+    const chatMember = await bot.api.getChatMember(`@${channelUsername}`, userId);
+    return chatMember.status === 'member' || chatMember.status === 'administrator';
+  } catch (error) {
+    console.error("Error checking channel membership:", error);
+    return false;
+  }
+};
+
+bot.command("start", async (ctx) => {
+  try {
+    const isMember = await isMemberOfChannel(ctx.from?.id?.toString() || "");
+    if (!isMember) {
+      await ctx.reply("Anda bukan anggota saluran yang diizinkan.");
+      return;
+    }
 
 const bot = new Bot(botToken);
 
