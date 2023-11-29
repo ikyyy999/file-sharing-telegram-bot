@@ -1,4 +1,4 @@
-mport { Bot, webhookCallback } from "grammy";
+import { Bot, webhookCallback } from "grammy";
 import express from "express";
 import { getFile, storeFile, getFileByCode } from "./services"; // Tambahkan fungsi getFileByCode
 import { botID, botToken, adminIDs } from "./config";
