@@ -9,7 +9,7 @@ const bot = new Bot(botToken);
 
 bot.command("start", async (ctx) => {
   try {
-    const userId = ctx.from?.id;
+    const userId: number | undefined = ctx.from?.id;
 
     // Periksa status langganan menggunakan Telegram API ID
     const isSubscribed = await checkSubscription(userId);
