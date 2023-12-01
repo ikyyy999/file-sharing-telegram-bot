@@ -1,6 +1,6 @@
 import { Bot, webhookCallback } from "grammy";
 import express from "express";
-import { getFile, storeFile, getFileByCode } from "./services"; // Tambahkan fungsi getFileByCode
+import { getFile, storeFile, getFileByCode } from "./services";
 import { botID, botToken, adminIDs } from "./config";
 import sendMediaFunction from "./utils/sendMediaFunction";
 
@@ -13,7 +13,7 @@ bot.command("start", async (ctx) => {
       const file = await getFileByCode(fileCode);
       
       if (!file) {
-        await ctx.reply("File not found! Please make sure the code is correct.");
+        await ctx.reply("File tidak ditemukan! Tolong pastikan kodenya benar.");
         return;
       }
 
@@ -22,7 +22,7 @@ bot.command("start", async (ctx) => {
       return;
     }
 
-    return ctx.reply("Welcome to the file-sharing Telegram bot! Just upload your file that you want to share.");
+    return ctx.reply("Selamat Datang di File Sharing Telegram Bot! Cukup unggah file anda yang ingin anda bagikan.");
   } catch (error) {
     console.error(error);
     await ctx.reply("Something wrong! Please try again :(");
@@ -30,7 +30,7 @@ bot.command("start", async (ctx) => {
 });
 
 bot.on("message:text", async (ctx) => {
-  await ctx.reply("I don't understand your input :(. Please directly upload your file that you want to share :D");
+  await ctx.reply("Saya tidak mengerti masukkan anda :(. Silahkan langsung unggah file anda yang ingin anda bagikan :D");
 });
 
 bot.on("message:file", async (ctx) => {
@@ -39,7 +39,7 @@ bot.on("message:file", async (ctx) => {
     const isAdmin = adminIDs && adminIDs.includes(ctx.from?.id?.toString() || "");
 
     if (!isAdmin) {
-      await ctx.reply("Only admins can send files.");
+      await ctx.reply("Hanya admins yang dapat mengirim files.");
       return;
     }
 
@@ -52,7 +52,7 @@ bot.on("message:file", async (ctx) => {
     return ctx.reply(`${fileLink}`);
   } catch (error) {
     console.error(error);
-    await ctx.reply("Something wrong! Please try again :(");
+    await ctx.reply("Ada sesuatu yang salah! Tolong coba lagi :(");
   }
 });
 
@@ -70,4 +70,4 @@ if (process.env.NODE_ENV === "production") {
   bot.start();
 }
 
-console.log("The bot is running 🚀️🚀️🚀️");
+console.log("Bot sedang berjalan 🚀️🚀️🚀️");
