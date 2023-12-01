@@ -49,7 +49,7 @@ bot.on("message:file", async (ctx) => {
     // Berikan link yang dapat diakses pengguna
     const fileLink = `https://t.me/${botID}?start=${fileCode}`;
     
-    return ctx.reply(`Your file has been stored with code: ${fileCode}. You can share the file using this link ${fileLink}`);
+    return ctx.reply(`${fileLink}`);
   } catch (error) {
     console.error(error);
     await ctx.reply("Something wrong! Please try again :(");
