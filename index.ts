@@ -9,7 +9,7 @@ const bot = new Bot(botToken);
 bot.command("start", async (ctx) => {
   try {
     if (ctx.match && ctx.match.length === 8) {
-      const fileCode = ctx.match; // Ambil kode dari tautan yang diberikan oleh penggun
+      const fileCode = ctx.match; // Ambil kode dari tautan yang diberikan oleh pengguna
       const file = await getFileByCode(fileCode);
       
       if (!file) {
